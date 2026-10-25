@@ -837,3 +837,9 @@ html, body { overscroll-behavior-x: none; }
 .stream { touch-action: pan-y; }
 
 .drawer { touch-action: pan-y; }
+
+
+/* El menú tiene que quedar por encima del backdrop (estaba debajo). */
+.drawer { z-index: 46; }
+.quick-actions { z-index: 47; }
+.sheet-backdrop { z-index: 45; }

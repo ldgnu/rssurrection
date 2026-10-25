@@ -181,6 +181,39 @@
     window.__rssrDrawer = { open: open, close: close };
   });
 
+  /* ---------- cerrar el menú deslizando sobre él ---------- */
+  safe('drawer-swipe', function () {
+    var d = $('#drawer');
+    if (!d) return;
+    var on = false, x0 = 0, y0 = 0, lx = 0, ly = 0;
+
+    d.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) { on = false; return; }
+      on = true;
+      x0 = lx = e.touches[0].clientX;
+      y0 = ly = e.touches[0].clientY;
+    }, { passive: true });
+
+    d.addEventListener('touchmove', function (e) {
+      if (!on) return;
+      var t = e.touches[0];
+      if (!t) return;
+      lx = t.clientX;
+      ly = t.clientY;
+    }, { passive: true });
+
+    function end() {
+      if (!on) return;
+      on = false;
+      var dx = lx - x0;
+      var dy = ly - y0;
+      if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
+      if (dx < 0 && window.__rssrDrawer) window.__rssrDrawer.close();
+    }
+    d.addEventListener('touchend', end, { passive: true });
+    d.addEventListener('touchcancel', end, { passive: true });
+  });
+
   /* ---------- toque largo: me gusta ---------- */
   safe('longpress-like', function () {
     var timer = 0, fired = false, ox = 0, oy = 0, programmatic = false;
@@ -483,38 +516,35 @@
       if (stream.scrollTop + stream.clientHeight * 2.5 >= stream.scrollHeight) loadMore();
     }, { passive: true });
 
-    // swipe horizontal → menú de secciones / abrir nota.
-    // Pointer events + touch-action: pan-y: iOS entrega el gesto horizontal
-    // sin cancelarlo, y el scroll vertical sigue siendo nativo.
-    var sx = 0, sy = 0, lastX = 0, lastY = 0, tracking = false, suppressClickUntil = 0;
+    // swipe horizontal → menú / abrir nota.
+    // Touch events y no pointer: en iOS el navegador cancela el pointer stream
+    // (pointercancel) en cuanto considera que el gesto es un scroll, pero los
+    // touchmove siguen llegando.
+    var sx = 0, sy = 0, lx = 0, ly = 0, tracking = false, suppressClickUntil = 0;
 
     function startSwipe(e) {
-      if (e.pointerType === 'mouse') return;
-      if (e.isPrimary === false) return;
+      if (e.touches.length !== 1) { tracking = false; return; }
       tracking = true;
-      sx = lastX = e.clientX;
-      sy = lastY = e.clientY;
+      sx = lx = e.touches[0].clientX;
+      sy = ly = e.touches[0].clientY;
     }
 
     function moveSwipe(e) {
       if (!tracking) return;
-      lastX = e.clientX;
-      lastY = e.clientY;
+      var t = e.touches[0];
+      if (!t) return;
+      lx = t.clientX;
+      ly = t.clientY;
     }
 
-    // finish(null) se usa cuando el navegador cancela el puntero: en iOS y en
-    // Chrome muchas veces llega pointercancel en lugar de pointerup, así que
-    // resolvemos con la última posición conocida.
-    function finish(e) {
+    function finishSwipe() {
       if (!tracking) return;
       tracking = false;
-      var x = e ? e.clientX : lastX;
-      var y = e ? e.clientY : lastY;
-      var dx = x - sx;
-      var dy = y - sy;
-      if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
+      var dx = lx - sx;
+      var dy = ly - sy;
+      if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
       if (dx > 0 && sx < 28) return; // borde izquierdo = "atrás" del sistema
-      suppressClickUntil = Date.now() + 500;
+      suppressClickUntil = Date.now() + 450;
 
       var drawer = window.__rssrDrawer;
       var open = document.body.classList.contains('drawer-open');
@@ -532,15 +562,15 @@
 
     document.addEventListener('click', function (e) {
       if (Date.now() > suppressClickUntil) return;
-      if (e.target.closest('.qa')) return;
+      if (e.target.closest('.qa') || e.target.closest('.drawer-item')) return;
       e.preventDefault();
       e.stopPropagation();
     }, true);
 
-    document.addEventListener('pointerdown', startSwipe, { passive: true });
-    document.addEventListener('pointermove', moveSwipe, { passive: true });
-    document.addEventListener('pointerup', finish, { passive: true });
-    document.addEventListener('pointercancel', function () { finish(null); }, { passive: true });
+    document.addEventListener('touchstart', startSwipe, { passive: true });
+    document.addEventListener('touchmove', moveSwipe, { passive: true });
+    document.addEventListener('touchend', finishSwipe, { passive: true });
+    document.addEventListener('touchcancel', finishSwipe, { passive: true });
   });
 
   /* ---------- tirar del diario ---------- */
