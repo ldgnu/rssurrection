@@ -274,6 +274,44 @@
       .catch(function () { box.remove(); });
   });
 
+  /* ---------- imágenes: lazy real (el nativo no dispara en el snap) ---------- */
+  safe('lazy-images', function () {
+    var observer = null;
+
+    function load(img) {
+      var src = img.getAttribute('data-src');
+      if (!src) return;
+      img.setAttribute('src', src);
+      img.removeAttribute('data-src');
+    }
+
+    if ('IntersectionObserver' in window) {
+      observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          observer.unobserve(en.target);
+          load(en.target);
+        });
+      }, { root: null, rootMargin: '150% 0px 150% 0px', threshold: 0.01 });
+    }
+
+    window.__rssrLazy = function (root) {
+      var imgs = Array.prototype.slice.call((root || document).querySelectorAll('.lazy-img'));
+      imgs.forEach(function (img) {
+        if (observer) observer.observe(img);
+        else load(img);
+      });
+    };
+
+    window.__rssrLazy(document);
+
+    // si el observer no existe, cargamos todo al primer scroll
+    if (!observer) return;
+    window.addEventListener('pagehide', function () {
+      Array.prototype.slice.call(document.querySelectorAll('.lazy-img')).forEach(load);
+    });
+  });
+
   /* ---------- orden de categorías ---------- */
   safe('cat-order', function () {
     var CAT_KEY = 'rssr-cat-order';
@@ -475,6 +513,7 @@
         }
         stream.setAttribute('data-next', res.next);
         if (!res.next && end) end.remove();
+        if (window.__rssrLazy) window.__rssrLazy(stream);
       }).catch(function () { toast('No se pudieron cargar más noticias'); })
         .then(function () { loading = false; });
     }
@@ -486,23 +525,35 @@
     // swipe horizontal → menú de secciones / abrir nota.
     // Pointer events + touch-action: pan-y: iOS entrega el gesto horizontal
     // sin cancelarlo, y el scroll vertical sigue siendo nativo.
-    var sx = 0, sy = 0, tracking = false;
+    var sx = 0, sy = 0, lastX = 0, lastY = 0, tracking = false, suppressClickUntil = 0;
 
     function startSwipe(e) {
       if (e.pointerType === 'mouse') return;
       if (e.isPrimary === false) return;
       tracking = true;
-      sx = e.clientX;
-      sy = e.clientY;
+      sx = lastX = e.clientX;
+      sy = lastY = e.clientY;
     }
 
-    function endSwipe(e) {
+    function moveSwipe(e) {
+      if (!tracking) return;
+      lastX = e.clientX;
+      lastY = e.clientY;
+    }
+
+    // finish(null) se usa cuando el navegador cancela el puntero: en iOS y en
+    // Chrome muchas veces llega pointercancel en lugar de pointerup, así que
+    // resolvemos con la última posición conocida.
+    function finish(e) {
       if (!tracking) return;
       tracking = false;
-      var dx = e.clientX - sx;
-      var dy = e.clientY - sy;
+      var x = e ? e.clientX : lastX;
+      var y = e ? e.clientY : lastY;
+      var dx = x - sx;
+      var dy = y - sy;
       if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
       if (dx > 0 && sx < 28) return; // borde izquierdo = "atrás" del sistema
+      suppressClickUntil = Date.now() + 500;
 
       var drawer = window.__rssrDrawer;
       var open = document.body.classList.contains('drawer-open');
@@ -510,7 +561,7 @@
         if (open) { if (drawer) drawer.close(); } else if (drawer) { drawer.open(); }
         return;
       }
-      if (document.body.classList.contains('drawer-open')) { if (drawer) drawer.close(); return; }
+      if (open) { if (drawer) drawer.close(); return; }
 
       var list = cards();
       var card = list[Math.max(0, Math.min(list.length - 1, current()))];
@@ -518,24 +569,17 @@
       if (link && link.getAttribute('href')) window.location.assign(link.getAttribute('href'));
     }
 
-    function cancelSwipe() { tracking = false; }
+    document.addEventListener('click', function (e) {
+      if (Date.now() > suppressClickUntil) return;
+      if (e.target.closest('.qa')) return;
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
 
-    stream.addEventListener('pointerdown', startSwipe, { passive: true });
-    stream.addEventListener('pointerup', endSwipe, { passive: true });
-    stream.addEventListener('pointercancel', cancelSwipe, { passive: true });
-
-    var backdropEl = $('#sheet-backdrop');
-    if (backdropEl) {
-      backdropEl.addEventListener('pointerdown', startSwipe, { passive: true });
-      backdropEl.addEventListener('pointerup', endSwipe, { passive: true });
-      backdropEl.addEventListener('pointercancel', cancelSwipe, { passive: true });
-    }
-    var drawerEl = $('#drawer');
-    if (drawerEl) {
-      drawerEl.addEventListener('pointerdown', startSwipe, { passive: true });
-      drawerEl.addEventListener('pointerup', endSwipe, { passive: true });
-      drawerEl.addEventListener('pointercancel', cancelSwipe, { passive: true });
-    }
+    document.addEventListener('pointerdown', startSwipe, { passive: true });
+    document.addEventListener('pointermove', moveSwipe, { passive: true });
+    document.addEventListener('pointerup', finish, { passive: true });
+    document.addEventListener('pointercancel', function () { finish(null); }, { passive: true });
   });
 
   /* ---------- tirar del diario ---------- */

@@ -39,6 +39,7 @@ type articleView struct {
 	OGImage     string // lazy og:image fallback, resolved by the server
 	External    bool   // opens the original site, not the reader
 	Href        string
+	Priority    bool // first cards load eagerly
 }
 
 type categoryView struct {
@@ -85,6 +86,9 @@ func (s *Server) buildArticles(items []freshrss.Item) []articleView {
 		v.ImageURL = s.imageURL(a.ImageURL)
 		if v.ImageURL == "" && a.Link != "" {
 			v.OGImage = s.ogURL(a.Link)
+		}
+		if len(out) < 3 {
+			v.Priority = true
 		}
 		out = append(out, v)
 	}
@@ -343,6 +347,20 @@ func (s *Server) renderFeed(w http.ResponseWriter, r *http.Request, stream fresh
 	data.Articles = s.buildArticles(page.Items)
 	data.Pages = fibChunk(data.Articles)
 	data.Next = page.Continuation
+	if s.media != nil {
+		urls := make([]string, 0, 12)
+		for _, it := range page.Items {
+			if a := it.Article(); a.ImageURL != "" {
+				urls = append(urls, a.ImageURL)
+			}
+			if len(urls) == 12 {
+				break
+			}
+		}
+		if len(urls) > 0 {
+			go s.media.Warm(urls)
+		}
+	}
 	if s.ai != nil {
 		keys := make([]string, 0, 3)
 		for _, a := range data.Articles {

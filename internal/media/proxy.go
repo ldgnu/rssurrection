@@ -26,7 +26,7 @@ import (
 
 const (
 	defaultCacheTTL     = 6 * time.Hour
-	defaultCacheEntries = 240
+	defaultCacheEntries = 700
 	maxImageBytes       = 6 << 20
 	maxHTMLBytes        = 512 << 10
 	maxRedirects        = 3
@@ -189,6 +189,39 @@ func (p *Proxy) cachePut(key string, e entry) {
 	}
 	e.exp = p.now().Add(p.ttl)
 	p.cache[key] = e
+}
+
+// Warm fetches images in the background so the browser finds them cached.
+// Bounded to a few URLs and to three concurrent upstream requests.
+func (p *Proxy) Warm(rawURLs []string) {
+	if len(rawURLs) == 0 {
+		return
+	}
+	sem := make(chan struct{}, 3)
+	for _, raw := range rawURLs {
+		raw = strings.TrimSpace(raw)
+		if raw == "" {
+			continue
+		}
+		if _, ok := p.cacheGet(raw); ok {
+			continue
+		}
+		if _, err := validTarget(raw); err != nil {
+			continue
+		}
+		sem <- struct{}{}
+		go func(raw string) {
+			defer func() { <-sem }()
+			if _, ok := p.cacheGet(raw); ok {
+				return
+			}
+			data, ctype, err := p.fetch(raw)
+			if err != nil {
+				return
+			}
+			p.cachePut(raw, entry{data: data, ctype: ctype})
+		}(raw)
+	}
 }
 
 // HandleImage serves /img.

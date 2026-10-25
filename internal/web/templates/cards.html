@@ -1,6 +1,6 @@
 {{define "card"}}<article class="story-card {{.AccentClass}}{{if and (not .ImageURL) (not .OGImage)}} story-plain{{end}}{{if .Read}} is-read{{end}}{{if .Starred}} is-starred{{end}}">
   <a class="story-link" href="{{if .External}}{{.Href}}{{else}}/a/{{.Key}}{{end}}"{{if .External}} target="_blank" rel="noopener noreferrer"{{end}} data-key="{{.Key}}" data-starred="{{if .Starred}}1{{else}}0{{end}}" data-title="{{.Title}}">
-    {{if or .ImageURL .OGImage}}<img class="story-img" src="{{if .ImageURL}}{{.ImageURL}}{{else}}{{.OGImage}}{{end}}" alt="" referrerpolicy="no-referrer" loading="lazy" decoding="async">{{end}}
+    {{if or .ImageURL .OGImage}}{{if .Priority}}<img class="story-img" src="{{if .ImageURL}}{{.ImageURL}}{{else}}{{.OGImage}}{{end}}" alt="" referrerpolicy="no-referrer" loading="eager" fetchpriority="high" decoding="async">{{else}}<img class="story-img lazy-img" data-src="{{if .ImageURL}}{{.ImageURL}}{{else}}{{.OGImage}}{{end}}" alt="" referrerpolicy="no-referrer" decoding="async">{{end}}{{end}}
     <span class="story-scrim"></span>
     <span class="story-content">
       <span class="story-feed">{{.Feed}}</span>
