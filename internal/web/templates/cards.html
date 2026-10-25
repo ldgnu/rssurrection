@@ -4,8 +4,8 @@
     <span class="story-scrim"></span>
     <span class="story-content">
       <span class="story-feed">{{.Feed}}</span>
-      <span class="story-headline">{{.Title}}</span>
-      {{if .Excerpt}}<span class="story-excerpt">{{.Excerpt}}</span>{{end}}
+      <span class="story-headline"{{if eq .Lang "en"}} data-tr{{end}}>{{.Title}}</span>
+      {{if .Excerpt}}<span class="story-excerpt"{{if eq .Lang "en"}} data-tr{{end}}>{{.Excerpt}}</span>{{end}}
       <span class="story-time">{{when .Published}}</span>
     </span>
   </a>

@@ -42,6 +42,7 @@ type Config struct {
 type RegionalSource struct {
 	Name string
 	URL  string
+	Lang string
 }
 
 // AI configures the optional summary model (OpenAI-compatible).
@@ -359,10 +360,13 @@ func loadAI(getenv Lookup) AI {
 }
 
 var defaultRegional = []RegionalSource{
-	{Name: "La Nación", URL: "https://www.lanacion.com.ar/arc/outboundfeeds/rss/"},
-	{Name: "Ámbito", URL: "https://www.ambito.com/rss/pages/home.xml"},
-	{Name: "Clarín", URL: "https://www.clarin.com/rss/lo-ultimo/"},
-	{Name: "Perfil", URL: "https://www.perfil.com/feed"},
+	{Name: "La Nación", URL: "https://www.lanacion.com.ar/arc/outboundfeeds/rss/", Lang: "es"},
+	{Name: "Ámbito", URL: "https://www.ambito.com/rss/pages/home.xml", Lang: "es"},
+	{Name: "Clarín", URL: "https://www.clarin.com/rss/lo-ultimo/", Lang: "es"},
+	{Name: "Perfil", URL: "https://www.perfil.com/feed", Lang: "es"},
+	{Name: "The Verge", URL: "https://www.theverge.com/rss/index.xml", Lang: "en"},
+	{Name: "Ars Technica", URL: "https://feeds.arstechnica.com/arstechnica/index", Lang: "en"},
+	{Name: "BBC World", URL: "https://feeds.bbci.co.uk/news/world/rss.xml", Lang: "en"},
 }
 
 // loadRegional parses RSSURRECTION_REGIONAL_FEEDS ("Nombre|URL,Nombre|URL")
@@ -398,7 +402,13 @@ func loadRegional(getenv Lookup) ([]RegionalSource, int) {
 		if name == "" {
 			name = u.Host
 		}
-		out = append(out, RegionalSource{Name: name, URL: u.String()})
+		lang := "es"
+		if it := strings.LastIndex(part, "|"); it > 0 {
+			if extra := strings.TrimSpace(part[it+1:]); extra == "en" || extra == "es" {
+				lang = extra
+			}
+		}
+		out = append(out, RegionalSource{Name: name, URL: u.String(), Lang: lang})
 	}
 	return out, limit
 }

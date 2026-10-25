@@ -80,7 +80,7 @@ func run() error {
 
 	var regionalSources []regional.Source
 	for _, r := range cfg.Regional {
-		regionalSources = append(regionalSources, regional.Source{Name: r.Name, URL: r.URL})
+		regionalSources = append(regionalSources, regional.Source{Name: r.Name, URL: r.URL, Lang: r.Lang})
 	}
 	rf := regional.New(regionalSources, cfg.RegionalLimit)
 

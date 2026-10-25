@@ -61,9 +61,12 @@ type Server struct {
 	sumMu       sync.Mutex
 	summaries   map[string]summaryEntry
 	sumInflight map[string]bool
-	pages       map[string]*template.Template
-	handler     http.Handler
-	started     time.Time
+
+	trMu         sync.Mutex
+	translations map[string]translationEntry
+	pages        map[string]*template.Template
+	handler      http.Handler
+	started      time.Time
 
 	diagMu   sync.Mutex
 	diagVal  freshrss.Diag
@@ -85,9 +88,10 @@ func New(cfg config.Config, log *slog.Logger, src DataSource, mp *media.Proxy, a
 		log = slog.Default()
 	}
 	s := &Server{cfg: cfg, log: log, src: src, media: mp, ai: aiClient, regional: rf,
-		summaries:   make(map[string]summaryEntry),
-		sumInflight: make(map[string]bool),
-		started:     time.Now()}
+		summaries:    make(map[string]summaryEntry),
+		sumInflight:  make(map[string]bool),
+		translations: make(map[string]translationEntry),
+		started:      time.Now()}
 
 	funcs := template.FuncMap{
 		"since":  humanSince,
@@ -122,6 +126,7 @@ func New(cfg config.Config, log *slog.Logger, src DataSource, mp *media.Proxy, a
 	mux.HandleFunc("GET /ajustes", s.handleSettings)
 	mux.HandleFunc("POST /feeds/rename", s.handleRenameFeed)
 	mux.HandleFunc("POST /api/summary", s.handleSummary)
+	mux.HandleFunc("POST /api/translate", s.handleTranslate)
 	mux.HandleFunc("POST /api/star", s.handleStar)
 	mux.HandleFunc("POST /api/read", s.handleRead)
 	mux.HandleFunc("GET /api/feed", s.handleFeed)
@@ -189,25 +194,26 @@ type pageData struct {
 	HasDiag    bool
 	Now        time.Time
 
-	Articles     []articleView
-	Pages        [][]articleView
-	Next         string
-	Article      *articleView
-	Content      template.HTML
-	Categories   []categoryView
-	Category     string
-	CategorySlug string
-	Mosaic       bool
-	ToggleHref   string
-	PrevHref     string
-	NextHref     string
-	Bare         bool
-	AssetVer     string
-	Stream       bool
-	Saved        bool
-	AIEnabled    bool
-	AIModel      string
-	Regional     []string
+	Articles        []articleView
+	Pages           [][]articleView
+	Next            string
+	Article         *articleView
+	Content         template.HTML
+	Categories      []categoryView
+	Category        string
+	CategorySlug    string
+	Mosaic          bool
+	ToggleHref      string
+	PrevHref        string
+	NextHref        string
+	Bare            bool
+	AssetVer        string
+	Stream          bool
+	Saved           bool
+	AIEnabled       bool
+	TranslateToggle bool
+	AIModel         string
+	Regional        []string
 }
 
 func (s *Server) baseData(title, nav string) pageData {

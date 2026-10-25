@@ -151,6 +151,39 @@
     });
   });
 
+  /* ---------- idioma de las noticias traducidas ---------- */
+  safe('lang', function () {
+    var KEY = 'rssr-lang';
+    var pref = 'es';
+    try { pref = localStorage.getItem(KEY) || 'es'; } catch (e) {}
+    var label = document.querySelector('.qa-lang');
+    if (label) label.textContent = pref === 'es' ? 'ES' : 'EN';
+
+    if (pref === 'es') {
+      var nodes = Array.prototype.slice.call(document.querySelectorAll('[data-tr]')).slice(0, 12);
+      if (nodes.length) {
+        var texts = nodes.map(function (n) { return n.textContent.trim(); });
+        fetch('/api/translate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ texts: texts })
+        }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+          .then(function (d) {
+            (d.texts || []).forEach(function (t, i) {
+              if (t && nodes[i]) nodes[i].textContent = t;
+            });
+          }).catch(function () {});
+      }
+    }
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-action="toggle-lang"]');
+      if (!btn) return;
+      var cur = 'es';
+      try { cur = localStorage.getItem(KEY) || 'es'; } catch (err) {}
+      try { localStorage.setItem(KEY, cur === 'es' ? 'en' : 'es'); } catch (err) {}
+      location.reload();
+    });
+  });
+
   /* ---------- actualizar ---------- */
   safe('refresh', function () {
     document.addEventListener('click', function (e) {
@@ -177,6 +210,8 @@
       if (b) b.classList.remove('is-open');
     }
     if (b) b.addEventListener('click', close);
+    var btn = $('#qa-menu');
+    if (btn) btn.addEventListener('click', open);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
     window.__rssrDrawer = { open: open, close: close };
   });
@@ -537,11 +572,15 @@
       ly = t.clientY;
     }
 
-    function finishSwipe() {
+    function finishSwipe(e) {
       if (!tracking) return;
       tracking = false;
-      var dx = lx - sx;
-      var dy = ly - sy;
+      // iOS a veces no manda ningún touchmove: la posición final viene acá.
+      var t = e && e.changedTouches && e.changedTouches[0];
+      var x = t ? t.clientX : lx;
+      var y = t ? t.clientY : ly;
+      var dx = x - sx;
+      var dy = y - sy;
       if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
       if (dx > 0 && sx < 28) return; // borde izquierdo = "atrás" del sistema
       suppressClickUntil = Date.now() + 450;

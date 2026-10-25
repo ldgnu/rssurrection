@@ -39,7 +39,8 @@ type articleView struct {
 	OGImage     string // lazy og:image fallback, resolved by the server
 	External    bool   // opens the original site, not the reader
 	Href        string
-	Priority    bool // first cards load eagerly
+	Priority    bool   // first cards load eagerly
+	Lang        string // "en" when the source needs translation
 }
 
 type categoryView struct {
@@ -206,6 +207,7 @@ func (s *Server) buildRegionalCards(items []regional.Item) []articleView {
 	for _, it := range items {
 		out = append(out, articleView{
 			Key:         "",
+			Lang:        it.Lang,
 			Title:       it.Title,
 			Feed:        it.Source,
 			Published:   it.Published,
@@ -234,6 +236,7 @@ func (s *Server) handleRegional(w http.ResponseWriter, r *http.Request) {
 	data.Mosaic = isMosaic(r)
 	data.ToggleHref = viewHref("Regional", "regional", !data.Mosaic)
 	data.Categories = s.categories(r.Context())
+	data.TranslateToggle = s.ai != nil
 	if err != nil {
 		data.DiagErr = "No se pudieron cargar los medios regionales."
 		s.log.Warn("regional page failed", "error", err)
@@ -326,6 +329,7 @@ func (s *Server) renderFeed(w http.ResponseWriter, r *http.Request, stream fresh
 	data.Category = label
 	data.CategorySlug = categorySlug(label)
 	data.Categories = s.categories(r.Context())
+	data.TranslateToggle = label == "Regional" && s.ai != nil
 	data.PrevHref, data.NextHref = categoryNeighbours(data.Categories, label)
 
 	if d, err := s.cachedDiag(r.Context(), false); err == nil {

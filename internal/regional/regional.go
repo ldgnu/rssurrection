@@ -22,10 +22,11 @@ const (
 	maxPerSource = 40
 )
 
-// Source is one public feed.
+// Source is one public feed. Lang is "es" or "en".
 type Source struct {
 	Name string
 	URL  string
+	Lang string
 }
 
 // Item is a normalized article from a public feed.
@@ -36,6 +37,7 @@ type Item struct {
 	Summary   string
 	ImageURL  string
 	Published time.Time
+	Lang      string
 }
 
 // Fetcher downloads and merges the configured sources.
@@ -243,6 +245,7 @@ func parse(body []byte, src Source) []Item {
 			Title:     cleanText(it.Title),
 			Link:      link,
 			Source:    src.Name,
+			Lang:      src.Lang,
 			Summary:   excerpt(it.Description, 150),
 			Published: parseDate(it.PubDate),
 		}
@@ -282,6 +285,7 @@ func parse(body []byte, src Source) []Item {
 			Title:     cleanText(e.Title),
 			Link:      link,
 			Source:    src.Name,
+			Lang:      src.Lang,
 			Summary:   excerpt(e.Summary, 150),
 			Published: parseDate(date),
 		}
