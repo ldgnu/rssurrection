@@ -203,35 +203,6 @@ body.is-stream main#main { height: 100dvh; min-height: 0; overflow: hidden; }
   .chrome-row, .cats { padding-left: 1.2rem; padding-right: 1.2rem; }
 }
 
-/* --- Favoritos y compartir --- */
-.story-heart {
-  position: absolute; top: calc(.9rem + env(safe-area-inset-top)); right: .9rem;
-  color: #fff; opacity: 0; transform: scale(.7);
-  transition: opacity 140ms ease-out, transform 140ms ease-out;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,.45));
-  pointer-events: none;
-}
-.story-card.is-starred .story-heart { opacity: 1; transform: scale(1); color: #ffd7c7; }
-.story-card.just-liked .story-heart { animation: heart-pop 380ms ease-out; }
-@keyframes heart-pop {
-  0% { transform: scale(.6); opacity: 0; }
-  45% { transform: scale(1.25); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-.story-plain .story-heart { color: var(--accent); opacity: 0; filter: none; }
-.story-plain.is-starred .story-heart { opacity: 1; }
-
-.toast {
-  position: fixed; left: 50%; bottom: calc(4.2rem + env(safe-area-inset-bottom));
-  transform: translate(-50%, .6rem);
-  background: color-mix(in srgb, var(--ink) 92%, transparent);
-  color: var(--bg); font-size: .82rem; font-weight: 600;
-  padding: .5rem .9rem; border-radius: 999px;
-  opacity: 0; pointer-events: none; z-index: 40;
-  transition: opacity 160ms ease-out, transform 160ms ease-out;
-  max-width: 80vw; text-align: center;
-}
-.toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
 
 /* iOS: evita el menú nativo de long-press sobre el link; lo usamos para compartir. */
 .story-link {
@@ -860,3 +831,9 @@ html, body { overscroll-behavior-x: none; }
   cursor: grabbing;
 }
 .cat-row .cat-name { cursor: grab; }
+
+
+/* El arrastre horizontal es nuestro; el vertical sigue siendo nativo. */
+.stream { touch-action: pan-y; }
+
+.drawer { touch-action: pan-y; }

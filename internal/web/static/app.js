@@ -483,48 +483,59 @@
       if (stream.scrollTop + stream.clientHeight * 2.5 >= stream.scrollHeight) loadMore();
     }, { passive: true });
 
-    // swipe horizontal → menú de secciones
+    // swipe horizontal → menú de secciones / abrir nota.
+    // Pointer events + touch-action: pan-y: iOS entrega el gesto horizontal
+    // sin cancelarlo, y el scroll vertical sigue siendo nativo.
     var sx = 0, sy = 0, tracking = false;
-    function startSwipe(e) {
-      if (e.touches.length !== 1) { tracking = false; return; }
-      tracking = true;
-      sx = e.touches[0].clientX;
-      sy = e.touches[0].clientY;
-    }
 
-    stream.addEventListener('touchstart', startSwipe, { passive: true });
-    var backdropEl = $('#sheet-backdrop');
-    if (backdropEl) backdropEl.addEventListener('touchstart', startSwipe, { passive: true });
+    function startSwipe(e) {
+      if (e.pointerType === 'mouse') return;
+      if (e.isPrimary === false) return;
+      tracking = true;
+      sx = e.clientX;
+      sy = e.clientY;
+    }
 
     function endSwipe(e) {
       if (!tracking) return;
       tracking = false;
-      var t = e.changedTouches[0];
-      var dx = t.clientX - sx;
-      var dy = t.clientY - sy;
-      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
-      // Los primeros 28px del borde izquierdo son del gesto "atrás" del sistema.
-      if (dx > 0 && sx < 28) return;
+      var dx = e.clientX - sx;
+      var dy = e.clientY - sy;
+      if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
+      if (dx > 0 && sx < 28) return; // borde izquierdo = "atrás" del sistema
 
       var drawer = window.__rssrDrawer;
-
+      var open = document.body.classList.contains('drawer-open');
       if (dx < 0) {
-        if (drawer) drawer.open();
+        if (open) { if (drawer) drawer.close(); } else if (drawer) { drawer.open(); }
         return;
       }
+      if (document.body.classList.contains('drawer-open')) { if (drawer) drawer.close(); return; }
 
-      if (document.body.classList.contains('drawer-open')) {
-        if (drawer) drawer.close();
-        return;
-      }
       var list = cards();
       var card = list[Math.max(0, Math.min(list.length - 1, current()))];
       var link = card && card.querySelector('.story-link');
       if (link && link.getAttribute('href')) window.location.assign(link.getAttribute('href'));
     }
 
-    stream.addEventListener('touchend', endSwipe, { passive: true });
-    if (backdropEl) backdropEl.addEventListener('touchend', endSwipe, { passive: true });
+    function cancelSwipe() { tracking = false; }
+
+    stream.addEventListener('pointerdown', startSwipe, { passive: true });
+    stream.addEventListener('pointerup', endSwipe, { passive: true });
+    stream.addEventListener('pointercancel', cancelSwipe, { passive: true });
+
+    var backdropEl = $('#sheet-backdrop');
+    if (backdropEl) {
+      backdropEl.addEventListener('pointerdown', startSwipe, { passive: true });
+      backdropEl.addEventListener('pointerup', endSwipe, { passive: true });
+      backdropEl.addEventListener('pointercancel', cancelSwipe, { passive: true });
+    }
+    var drawerEl = $('#drawer');
+    if (drawerEl) {
+      drawerEl.addEventListener('pointerdown', startSwipe, { passive: true });
+      drawerEl.addEventListener('pointerup', endSwipe, { passive: true });
+      drawerEl.addEventListener('pointercancel', cancelSwipe, { passive: true });
+    }
   });
 
   /* ---------- tirar del diario ---------- */

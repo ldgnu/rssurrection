@@ -2,9 +2,6 @@
   <a class="story-link" href="{{if .External}}{{.Href}}{{else}}/a/{{.Key}}{{end}}"{{if .External}} target="_blank" rel="noopener noreferrer"{{end}} data-key="{{.Key}}" data-starred="{{if .Starred}}1{{else}}0{{end}}" data-title="{{.Title}}">
     {{if or .ImageURL .OGImage}}<img class="story-img" src="{{if .ImageURL}}{{.ImageURL}}{{else}}{{.OGImage}}{{end}}" alt="" referrerpolicy="no-referrer" loading="lazy" decoding="async">{{end}}
     <span class="story-scrim"></span>
-    <span class="story-heart" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 21s-7.5-4.7-9.5-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.5 12c-2 4.3-9.5 9-9.5 9z" fill="currentColor"/></svg>
-    </span>
     <span class="story-content">
       <span class="story-feed">{{.Feed}}</span>
       <span class="story-headline">{{.Title}}</span>
