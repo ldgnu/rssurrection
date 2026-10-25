@@ -1,0 +1,73 @@
+{{define "content"}}
+{{with .Article}}
+<div class="reader-wrap">
+  <article class="reader" data-read-key="{{.Key}}">
+    <header class="reader-head">
+      <p class="reader-kicker">{{.Feed}}</p>
+      <h1 class="reader-title">{{.Title}}</h1>
+      <p class="reader-dateline">
+        <time datetime="{{.Published.Format "2006-01-02T15:04:05Z07:00"}}">{{when .Published}}</time>
+        {{if .Domain}}<span class="sep">·</span>{{.Domain}}{{end}}
+        {{if .Read}}<span class="sep">·</span>leído{{end}}
+        {{if .Starred}}<span class="sep">·</span>guardado{{end}}
+      </p>
+    </header>
+
+    {{if or .ImageURL .OGImage}}
+    <figure class="reader-hero"><img src="{{if .ImageURL}}{{.ImageURL}}{{else}}{{.OGImage}}{{end}}" alt="" loading="eager" decoding="async"></figure>
+    {{end}}
+
+    {{if $.DiagErr}}<section class="notice" role="note"><p>{{$.DiagErr}}</p></section>{{end}}
+
+    {{if $.AIEnabled}}
+    <section class="ai-box" id="ai-box" data-key="{{.Key}}">
+      <p class="ai-label">De qué trata</p>
+      <p class="ai-text" id="ai-text">Leyendo la nota…</p>
+    </section>
+    {{end}}
+
+    {{if $.Content}}<div class="prose">{{$.Content}}</div>{{end}}
+
+    <p class="reader-end">Fin de la nota</p>
+  </article>
+
+  <button class="fab" type="button" id="actions-btn" aria-label="Más opciones" aria-haspopup="dialog" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+  </button>
+</div>
+
+<div class="sheet-backdrop" id="sheet-backdrop"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Opciones del artículo" aria-hidden="true"
+     data-key="{{.Key}}" data-title="{{.Title}}" data-link="{{.Link}}" data-starred="{{if .Starred}}1{{else}}0{{end}}" data-read="{{if .Read}}1{{else}}0{{end}}">
+  <button class="sheet-item" type="button" data-action="share">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>
+    Compartir
+  </button>
+  {{if .Link}}
+  <a class="sheet-item" href="{{.Link}}" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>
+    Abrir original
+  </a>
+  {{end}}
+  <button class="sheet-item" type="button" data-action="star">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.7-9.5-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.5 12c-2 4.3-9.5 9-9.5 9z"/></svg>
+    <span data-label="star">{{if .Starred}}Quitar de guardados{{else}}Guardar{{end}}</span>
+  </button>
+  <button class="sheet-item" type="button" data-action="read">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span data-label="read">Marcar como no leído</span>
+  </button>
+  <button class="sheet-item" type="button" data-action="copy">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
+    Copiar link
+  </button>
+  <div class="sheet-fonts" role="group" aria-label="Tamaño de letra">
+    <span>Tamaño</span>
+    <button class="font-btn" type="button" data-font="1" aria-label="Letra normal">A</button>
+    <button class="font-btn" type="button" data-font="2" aria-label="Letra grande"><span class="big">A</span></button>
+    <button class="font-btn" type="button" data-font="3" aria-label="Letra más grande"><span class="bigger">A</span></button>
+  </div>
+  <button class="sheet-item sheet-cancel" type="button" data-action="close">Cancelar</button>
+</div>
+{{end}}
+{{end}}

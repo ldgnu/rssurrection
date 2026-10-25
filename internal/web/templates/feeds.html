@@ -1,0 +1,36 @@
+{{define "content"}}
+<div class="feeds-wrap">
+  <header class="feeds-head">
+    <h1>Feeds</h1>
+    <p class="feeds-count">{{len .Feeds}} suscripciones</p>
+    <nav class="feeds-sort" aria-label="Ordenar">
+      <a href="/feeds?sort=name" {{if eq .Sort "name"}}aria-current="page"{{end}}>Nombre</a>
+      <a href="/feeds?sort=unread" {{if eq .Sort "unread"}}aria-current="page"{{end}}>No leídos</a>
+      <a href="/feeds?sort=category" {{if eq .Sort "category"}}aria-current="page"{{end}}>Categoría</a>
+    </nav>
+  </header>
+
+  {{if .DiagErr}}<section class="notice notice-bad"><p>{{.DiagErr}}</p></section>{{end}}
+
+  <ul class="feed-list">
+    {{range .Feeds}}
+    <li class="feed-row">
+      <form class="feed-form" method="post" action="/feeds/rename">
+        <input type="hidden" name="id" value="{{.ID}}">
+        <input type="hidden" name="sort" value="{{$.Sort}}">
+        <div class="feed-main">
+          <input class="feed-title" name="title" value="{{.Title}}" aria-label="Nombre del feed" maxlength="200">
+          <p class="feed-meta">
+            {{if .Category}}<span class="feed-cat">{{.Category}}</span>{{end}}
+            {{if .Unread}}<span class="feed-unread">{{.Unread}} sin leer</span>{{end}}
+          </p>
+        </div>
+        <button class="feed-save" type="submit" aria-label="Guardar nombre">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </button>
+      </form>
+    </li>
+    {{end}}
+  </ul>
+</div>
+{{end}}

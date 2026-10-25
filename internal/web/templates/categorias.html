@@ -1,0 +1,26 @@
+{{define "content"}}
+<div class="cats-wrap">
+  <header class="feeds-head">
+    <h1>Categorías</h1>
+    <p class="feeds-count">El orden se guarda en este dispositivo y se aplica al menú de secciones.</p>
+  </header>
+
+  <ul class="cat-list" id="cat-list">
+    {{range .Categories}}
+    <li class="cat-row" data-slug="{{.Slug}}">
+      <span class="cat-name">{{.Label}}</span>
+      <span class="cat-actions">
+        <button class="cat-btn" type="button" data-move="up" aria-label="Subir {{.Label}}">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>
+        </button>
+        <button class="cat-btn" type="button" data-move="down" aria-label="Bajar {{.Label}}">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </span>
+    </li>
+    {{end}}
+  </ul>
+
+  <p class="cats-foot"><a href="/feeds">Renombrar feeds</a></p>
+</div>
+{{end}}

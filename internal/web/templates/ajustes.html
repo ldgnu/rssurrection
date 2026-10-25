@@ -1,0 +1,67 @@
+{{define "content"}}
+<div class="cats-wrap">
+  <header class="feeds-head">
+    <h1>Ajustes</h1>
+    <p class="feeds-count">Todo lo que no es leer, en un solo lugar.</p>
+  </header>
+
+  <ul class="set-list">
+    <li>
+      <a class="set-row" href="/categorias">
+        <span class="set-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        </span>
+        <span class="set-body"><span class="set-title">Categorías</span><span class="set-sub">Ordenar cómo aparecen en el menú</span></span>
+      </a>
+    </li>
+    <li>
+      <a class="set-row" href="/feeds">
+        <span class="set-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.6" fill="currentColor"/></svg>
+        </span>
+        <span class="set-body"><span class="set-title">Feeds</span><span class="set-sub">Renombrar y ver cuántos quedan sin leer</span></span>
+      </a>
+    </li>
+    <li>
+      <a class="set-row" href="{{.ToggleHref}}">
+        <span class="set-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="10" height="10" rx="2"/><rect x="15" y="3" width="6" height="6" rx="2"/><rect x="3" y="15" width="6" height="6" rx="2"/><rect x="15" y="11" width="6" height="10" rx="2"/></svg>
+        </span>
+        <span class="set-body">
+          <span class="set-title">Vista</span>
+          <span class="set-sub">Ahora: {{if .Mosaic}}mosaico de cuatro{{else}}una por pantalla{{end}}</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="set-row" href="/diag">
+        <span class="set-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
+        </span>
+        <span class="set-body"><span class="set-title">Estado de la conexión</span><span class="set-sub">Diagnóstico con FreshRSS</span></span>
+      </a>
+    </li>
+  </ul>
+
+  <h2 class="set-h2">Lectura</h2>
+  <div class="theme-picker" role="group" aria-label="Tema de lectura">
+    <button class="theme-btn" type="button" data-theme-set="auto">Auto</button>
+    <button class="theme-btn" type="button" data-theme-set="light">Claro</button>
+    <button class="theme-btn" type="button" data-theme-set="sepia">Sepia</button>
+    <button class="theme-btn" type="button" data-theme-set="contrast">Alto contraste</button>
+  </div>
+
+  <h2 class="set-h2">Fuentes</h2>
+  <div class="set-panel">
+    <p class="set-line"><strong>FreshRSS</strong> <span class="mono">{{.BaseURL}}</span></p>
+    <p class="set-line"><strong>Resumen IA</strong>
+      {{if .AIEnabled}}<span>{{.AIModel}}</span>{{else}}<span class="muted">sin configurar</span>{{end}}
+    </p>
+    <p class="set-line"><strong>Regional</strong>
+      {{if .Regional}}<span>{{range $i, $s := .Regional}}{{if $i}} · {{end}}{{$s}}{{end}}</span>{{else}}<span class="muted">desactivado</span>{{end}}
+    </p>
+  </div>
+
+  <p class="cats-foot">RSSurrection {{.Version}} · build {{.AssetVer}} · <a href="https://github.com/ldgnu/rssurrection">código</a></p>
+</div>
+{{end}}

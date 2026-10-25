@@ -1,0 +1,22 @@
+{{define "content"}}
+<div class="diag-wrap">
+  <h1>Falta conectar FreshRSS</h1>
+  <section class="notice">
+    <p>RSSurrection lee tus feeds desde tu propia instancia. Se configura por variables de entorno, nunca desde el navegador.</p>
+  </section>
+  <table class="table">
+    <thead><tr><th>Variable</th><th>Qué es</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">FRESHRSS_BASE_URL</td><td>URL de tu FreshRSS. Alcanza con el host: se agrega <span class="mono">/api/greader.php</span> solo.</td></tr>
+      <tr><td class="mono">FRESHRSS_USER</td><td>Usuario de FreshRSS.</td></tr>
+      <tr><td class="mono">FRESHRSS_API_PASSWORD</td><td>Contraseña de API del perfil (Perfil → API), no la del login.</td></tr>
+    </tbody>
+  </table>
+  <section class="notice">
+    <h2>Cómo levantarlo</h2>
+    <pre class="mono">cp .env.example .env
+$EDITOR .env
+docker compose up -d --build</pre>
+  </section>
+</div>
+{{end}}

@@ -1,0 +1,37 @@
+{{define "layout"}}<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#faf5ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17130f" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RSSurrection">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/static/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/icon-180.png">
+<meta name="description" content="RSSurrection: tus feeds de FreshRSS como una revista.">
+<title>{{.Title}} · RSSurrection</title>
+<script src="/static/theme.js?v={{.AssetVer}}"></script>
+<link rel="stylesheet" href="/static/app.css?v={{.AssetVer}}">
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<script src="/static/app.js?v={{.AssetVer}}" defer></script>
+</head>
+<body class="{{if .Bare}}is-bare{{end}}{{if .Stream}} is-stream{{end}}">
+<a class="skip" href="#main">Saltar al contenido</a>
+{{if not .Bare}}<header class="chrome">
+  <div class="chrome-row">
+    <a class="wordmark" href="/"><span class="wordmark-dot" aria-hidden="true"></span>RSSurrection</a>
+    <nav class="chrome-links" aria-label="Principal">
+      <a href="/" {{if eq .Nav "home"}}aria-current="page"{{end}}>Noticias</a>
+      <a href="/ajustes" {{if eq .Nav "ajustes"}}aria-current="page"{{end}}>Ajustes</a>
+    </nav>
+  </div>
+</header>{{end}}
+<main id="main">
+{{template "content" .}}
+</main>
+</body>
+</html>{{end}}

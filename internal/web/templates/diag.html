@@ -1,0 +1,37 @@
+{{define "content"}}
+<div class="diag-wrap">
+  <h1>Estado</h1>
+  <p class="mono">{{.BaseURL}} · {{.User}}</p>
+
+  {{if .DiagErr}}
+  <section class="notice notice-bad" role="alert">
+    <h2>Falló la verificación</h2>
+    <p>{{.DiagErr}}</p>
+    {{if .DiagKind}}<p class="mono">código: {{.DiagKind}}</p>{{end}}
+  </section>
+  {{end}}
+
+  {{if .Diag.Steps}}
+  <table class="table">
+    <thead><tr><th>Paso</th><th>Resultado</th><th>Tiempo</th><th>Detalle</th></tr></thead>
+    <tbody>
+    {{range .Diag.Steps}}
+      <tr>
+        <td>{{.Name}}</td>
+        <td>{{if .OK}}<span class="dot dot-ok"></span>ok{{else}}<span class="dot dot-bad"></span>error{{end}}</td>
+        <td class="mono">{{fmtDur .Duration}}</td>
+        <td>{{if .OK}}{{.Detail}}{{else}}{{.Err}}{{end}}</td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+  {{end}}
+
+  <dl class="stats">
+    <div><dt>Feeds</dt><dd>{{.Diag.Feeds}}</dd></div>
+    <div><dt>Carpetas</dt><dd>{{.Diag.Folders}}</dd></div>
+    <div><dt>Sin leer</dt><dd>{{.Diag.Unread}}</dd></div>
+  </dl>
+  <p><a class="btn" href="/diag">Repetir</a></p>
+</div>
+{{end}}
