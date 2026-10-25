@@ -245,6 +245,25 @@ func (s *Server) handleRegional(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, http.StatusOK, "home", data)
 }
 
+func (s *Server) handleMenu(w http.ResponseWriter, r *http.Request) {
+	data := s.baseData("Opciones", "home")
+	data.Categories = s.categories(r.Context())
+	data.Mosaic = isMosaic(r)
+	data.ToggleHref = "/?v=mosaic"
+	if data.Mosaic {
+		data.ToggleHref = "/"
+	}
+	if c := r.URL.Query().Get("cat"); c != "" {
+		for _, cat := range data.Categories {
+			if cat.Slug == c {
+				data.Category = cat.Label
+				break
+			}
+		}
+	}
+	s.render(w, r, http.StatusOK, "menu", data)
+}
+
 func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
 	data := s.baseData("Ajustes", "home")
 	data.Mosaic = isMosaic(r)

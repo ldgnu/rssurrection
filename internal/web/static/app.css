@@ -874,3 +874,7 @@ html, body { overscroll-behavior-x: none; }
 }
 .sheet-cancel { background: transparent; border-color: transparent; }
 .quick-actions { display: none; }
+
+.set-icon { font-size: 1rem; }
+.cat-row .cat-name { display: block; padding: .7rem 0; width: 100%; }
+a.fab { text-decoration: none; }

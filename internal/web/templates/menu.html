@@ -1,0 +1,27 @@
+{{define "content"}}
+<div class="cats-wrap">
+  <header class="feeds-head">
+    <h1>Opciones</h1>
+    <p class="feeds-count">{{if .Category}}Sección: {{.Category}}{{else}}Todo tu FreshRSS{{end}}</p>
+  </header>
+
+  <ul class="set-list">
+    <li><a class="set-row" href="/guardados"><span class="set-icon" aria-hidden="true">♥</span>
+      <span class="set-body"><span class="set-title">Guardados</span><span class="set-sub">Lo que marcaste con el corazón</span></span></a></li>
+    <li><a class="set-row" href="/regional"><span class="set-icon" aria-hidden="true">◎</span>
+      <span class="set-body"><span class="set-title">Regional y mundo</span><span class="set-sub">Fuera de tus feeds, con traducción</span></span></a></li>
+    <li><a class="set-row" href="{{.ToggleHref}}"><span class="set-icon" aria-hidden="true">▦</span>
+      <span class="set-body"><span class="set-title">Vista</span><span class="set-sub">Ahora: {{if .Mosaic}}mosaico de cuatro{{else}}una por pantalla{{end}}</span></span></a></li>
+    <li><a class="set-row" href="/ajustes"><span class="set-icon" aria-hidden="true">⚙</span>
+      <span class="set-body"><span class="set-title">Ajustes</span><span class="set-sub">Temas, categorías, feeds, diagnóstico</span></span></a></li>
+  </ul>
+
+  <h2 class="set-h2">Secciones</h2>
+  <ul class="cat-list">
+    <li class="cat-row"><a class="cat-name" href="/{{if .Mosaic}}?v=mosaic{{end}}">Todas</a></li>
+    {{range .Categories}}
+    <li class="cat-row"><a class="cat-name" href="/c/{{.Slug}}{{if $.Mosaic}}?v=mosaic{{end}}">{{.Label}}</a></li>
+    {{end}}
+  </ul>
+</div>
+{{end}}

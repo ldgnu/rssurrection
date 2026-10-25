@@ -100,7 +100,7 @@ func New(cfg config.Config, log *slog.Logger, src DataSource, mp *media.Proxy, a
 	}
 	s.assetVer = s.assetVersion()
 	s.pages = make(map[string]*template.Template, 4)
-	for _, name := range []string{"home", "setup", "diag", "error", "article", "feeds", "categorias", "ajustes"} {
+	for _, name := range []string{"home", "setup", "diag", "error", "article", "feeds", "categorias", "ajustes", "menu"} {
 		files := []string{"templates/layout.html", "templates/" + name + ".html"}
 		if name == "home" {
 			files = append(files, "templates/cards.html")
@@ -126,6 +126,7 @@ func New(cfg config.Config, log *slog.Logger, src DataSource, mp *media.Proxy, a
 	mux.HandleFunc("GET /categorias", s.handleCategories)
 	mux.HandleFunc("GET /regional", s.handleRegional)
 	mux.HandleFunc("GET /ajustes", s.handleSettings)
+	mux.HandleFunc("GET /menu", s.handleMenu)
 	mux.HandleFunc("POST /feeds/rename", s.handleRenameFeed)
 	mux.HandleFunc("POST /api/summary", s.handleSummary)
 	mux.HandleFunc("POST /api/translate", s.handleTranslate)
