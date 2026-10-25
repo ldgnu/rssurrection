@@ -114,6 +114,8 @@ func New(cfg config.Config, log *slog.Logger, src DataSource, mp *media.Proxy, a
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /sw.js", s.handleServiceWorker)
+	mux.HandleFunc("GET /refresh", s.handleRefresh)
+	mux.HandleFunc("POST /api/client-log", s.handleClientLog)
 	mux.HandleFunc("GET /healthz", s.handleHealthz)
 	mux.HandleFunc("GET /readyz", s.handleReadyz)
 	mux.HandleFunc("GET /diag", s.handleDiag)

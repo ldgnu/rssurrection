@@ -570,6 +570,7 @@
       if (!t) return;
       lx = t.clientX;
       ly = t.clientY;
+      window.__rssrMoves = (window.__rssrMoves || 0) + 1;
     }
 
     function finishSwipe(e) {
@@ -581,6 +582,9 @@
       var y = t ? t.clientY : ly;
       var dx = x - sx;
       var dy = y - sy;
+      if (window.__rssrLogSwipe) {
+        window.__rssrLogSwipe('swipe', Math.round(dx) + ',' + Math.round(dy) + ',moves=' + (window.__rssrMoves || 0));
+      }
       if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
       if (dx > 0 && sx < 28) return; // borde izquierdo = "atrás" del sistema
       suppressClickUntil = Date.now() + 450;
@@ -683,4 +687,20 @@
   });
 
   document.documentElement.setAttribute('data-js', 'ok');
+
+  safe('beacon', function () {
+    var buildEl = document.querySelector('meta[name="rssr-build"]');
+    var build = buildEl ? buildEl.getAttribute('content') : '?';
+    function send(kind, detail) {
+      try {
+        fetch('/api/client-log', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kind: kind, build: build, js: 'ok', detail: detail }),
+          keepalive: true
+        }).catch(function () {});
+      } catch (e) {}
+    }
+    send('load', navigator.userAgent.slice(0, 120));
+    window.__rssrLogSwipe = send;
+  });
 })();
