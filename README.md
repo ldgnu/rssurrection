@@ -6,6 +6,18 @@ FreshRSS. RSSurrection es la capa de lectura.
 
 > RSS isn't dead. The open web lives on.
 
+## Capturas
+
+Tomadas de una instancia de prueba (contenido público, sin datos personales).
+
+| Portada | Mosaico |
+|---|---|
+| ![Portada](docs/screenshots/portada.webp) | ![Mosaico](docs/screenshots/mosaico.webp) |
+
+| Opciones | Lector |
+|---|---|
+| ![Opciones](docs/screenshots/opciones.webp) | ![Lector](docs/screenshots/lector.webp) |
+
 ## Qué hace hoy
 
 - Portada a pantalla completa con las noticias de tu FreshRSS, con gestos:
