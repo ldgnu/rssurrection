@@ -1,41 +1,15 @@
-/* RSSurrection service worker: HTML siempre de red, estáticos versionados. */
-const VERSION = '__VERSION__';
-
+/* Service worker de salida: limpia cachés, se desregistra y recarga.
+   Se mantiene la ruta /sw.js para desactivar instalaciones viejas. */
 self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
-
-  const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
-
-  // Navegación: red primero. Nunca servir HTML viejo.
-  if (req.mode === 'navigate') {
-    event.respondWith(
-      fetch(req).catch(() => caches.match('/'))
-    );
-    return;
-  }
-
-  // Estáticos: cache primero (las URLs llevan ?v=<build>).
-  if (url.pathname.startsWith('/static/')) {
-    event.respondWith(
-      caches.open(VERSION).then(async (cache) => {
-        const hit = await cache.match(req);
-        if (hit) return hit;
-        const res = await fetch(req);
-        if (res && res.ok) cache.put(req, res.clone());
-        return res;
-      })
-    );
-  }
+  event.waitUntil((async () => {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    } catch (e) {}
+    try { await self.registration.unregister(); } catch (e) {}
+    const clients = await self.clients.matchAll({ type: 'window' });
+    clients.forEach((c) => { try { c.navigate(c.url); } catch (e) {} });
+  })());
 });

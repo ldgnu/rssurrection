@@ -102,8 +102,22 @@ func (s *Server) sessionAuth(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
+		_, err := r.Cookie(sessionCookie)
+		s.log.Info("session rejected",
+			"path", r.URL.Path,
+			"cookie_present", err == nil,
+			"secure_req", s.secureRequest(r),
+			"proto", r.Header.Get("X-Forwarded-Proto"),
+			"ua", shortUA(r.UserAgent()))
 		http.Redirect(w, r, loginPath+"?next="+r.URL.Path, http.StatusSeeOther)
 	})
+}
+
+func shortUA(ua string) string {
+	if len(ua) > 70 {
+		return ua[:70]
+	}
+	return ua
 }
 
 func (s *Server) handleLoginPage(w http.ResponseWriter, r *http.Request) {

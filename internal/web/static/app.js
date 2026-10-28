@@ -691,7 +691,10 @@
   });
   safe('service-worker', function () {
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('/sw.js').catch(function () {});
+    // Limpieza: si quedó un SW de versiones anteriores, lo desregistramos.
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (r) { r.unregister(); });
+    }).catch(function () {});
   });
 
   document.documentElement.setAttribute('data-js', 'ok');
