@@ -1,0 +1,17 @@
+{{define "content"}}
+<div class="login-wrap">
+  <form class="login-card glass" method="post" action="/login">
+    <p class="login-brand">RSSurrection</p>
+    <p class="login-sub">Tu diario, del otro lado.</p>
+    <input type="hidden" name="next" value="{{.Next}}">
+    <label class="login-label" for="usuario">Usuario</label>
+    <input class="login-input" id="usuario" name="usuario" type="email" autocomplete="username"
+           inputmode="email" autocapitalize="none" spellcheck="false" required autofocus>
+    <label class="login-label" for="clave">Contraseña</label>
+    <input class="login-input" id="clave" name="clave" type="password"
+           autocomplete="current-password" required>
+    {{if .Error}}<p class="login-error" role="alert">{{.Error}}</p>{{end}}
+    <button class="login-btn" type="submit">Entrar</button>
+  </form>
+</div>
+{{end}}

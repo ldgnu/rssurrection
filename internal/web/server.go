@@ -58,6 +58,8 @@ type Server struct {
 	ai       *ai.Client
 	regional *regional.Fetcher
 
+	limiter *loginLimiter
+
 	sumMu       sync.Mutex
 	summaries   map[string]summaryEntry
 	sumInflight map[string]bool
@@ -98,9 +100,10 @@ func New(cfg config.Config, log *slog.Logger, src DataSource, mp *media.Proxy, a
 		"when":   humanTime,
 		"fmtDur": func(d time.Duration) string { return strconv.FormatInt(d.Milliseconds(), 10) + " ms" },
 	}
+	s.limiter = &loginLimiter{fails: make(map[string][]time.Time)}
 	s.assetVer = s.assetVersion()
 	s.pages = make(map[string]*template.Template, 4)
-	for _, name := range []string{"home", "setup", "diag", "error", "article", "feeds", "categorias", "ajustes", "menu"} {
+	for _, name := range []string{"home", "setup", "diag", "error", "article", "feeds", "categorias", "ajustes", "menu", "login"} {
 		files := []string{"templates/layout.html", "templates/" + name + ".html"}
 		if name == "home" {
 			files = append(files, "templates/cards.html")
@@ -127,6 +130,9 @@ func New(cfg config.Config, log *slog.Logger, src DataSource, mp *media.Proxy, a
 	mux.HandleFunc("GET /regional", s.handleRegional)
 	mux.HandleFunc("GET /ajustes", s.handleSettings)
 	mux.HandleFunc("GET /menu", s.handleMenu)
+	mux.HandleFunc("GET /login", s.handleLoginPage)
+	mux.HandleFunc("POST /login", s.handleLogin)
+	mux.HandleFunc("POST /logout", s.handleLogout)
 	mux.HandleFunc("POST /feeds/rename", s.handleRenameFeed)
 	mux.HandleFunc("POST /api/summary", s.handleSummary)
 	mux.HandleFunc("POST /api/translate", s.handleTranslate)
@@ -151,6 +157,7 @@ func New(cfg config.Config, log *slog.Logger, src DataSource, mp *media.Proxy, a
 		s.recoverPanic,
 		s.securityHeaders,
 		s.logRequests,
+		s.sessionAuth,
 	)
 	return s, nil
 }

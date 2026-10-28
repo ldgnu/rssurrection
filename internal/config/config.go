@@ -36,6 +36,8 @@ type Config struct {
 	Regional        []RegionalSource
 	RegionalLimit   int
 	SigningSecret   string
+	AuthUser        string
+	AuthPassword    string
 }
 
 // RegionalSource is a public news feed outside FreshRSS.
@@ -155,6 +157,11 @@ func Load(getenv Lookup) (Config, error) {
 	cfg.AI = loadAI(getenv)
 	cfg.Regional, cfg.RegionalLimit = loadRegional(getenv)
 	cfg.SigningSecret = loadSigningSecret(getenv, cfg.FreshRSS)
+	cfg.AuthUser = strings.TrimSpace(getenv("RSSURRECTION_AUTH_USER"))
+	cfg.AuthPassword = getenv("RSSURRECTION_AUTH_PASSWORD")
+	if (cfg.AuthUser == "") != (cfg.AuthPassword == "") {
+		errs = append(errs, errors.New("RSSURRECTION_AUTH_USER y RSSURRECTION_AUTH_PASSWORD van juntos"))
+	}
 
 	if err := errors.Join(errs...); err != nil {
 		return Config{}, err

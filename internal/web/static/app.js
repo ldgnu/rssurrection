@@ -555,43 +555,51 @@
     // Touch events y no pointer: en iOS el navegador cancela el pointer stream
     // (pointercancel) en cuanto considera que el gesto es un scroll, pero los
     // touchmove siguen llegando.
-    var sx = 0, sy = 0, lx = 0, ly = 0, tracking = false, suppressClickUntil = 0;
+    var sx = 0, sy = 0, maxDx = 0, maxDy = 0, tracking = false, suppressClickUntil = 0;
 
     function startSwipe(e) {
       if (e.touches.length !== 1) { tracking = false; return; }
       tracking = true;
-      sx = lx = e.touches[0].clientX;
-      sy = ly = e.touches[0].clientY;
+      sx = e.touches[0].clientX;
+      sy = e.touches[0].clientY;
+      maxDx = 0;
+      maxDy = 0;
     }
 
-    function moveSwipe(e) {
+    function track(e) {
       if (!tracking) return;
-      var t = e.touches[0];
+      var t = e.touches && e.touches[0];
       if (!t) return;
-      lx = t.clientX;
-      ly = t.clientY;
-      window.__rssrMoves = (window.__rssrMoves || 0) + 1;
+      var dx = t.clientX - sx;
+      var dy = t.clientY - sy;
+      // Guardamos el desplazamiento máximo: iOS a veces informa la posición
+      // final igual a la inicial (rebote), y con el delta final el gesto se
+      // perdía. El máximo conserva la intención.
+      if (Math.abs(dx) > Math.abs(maxDx)) maxDx = dx;
+      if (Math.abs(dy) > Math.abs(maxDy)) maxDy = dy;
     }
 
     function finishSwipe(e) {
       if (!tracking) return;
       tracking = false;
-      // iOS a veces no manda ningún touchmove: la posición final viene acá.
       var t = e && e.changedTouches && e.changedTouches[0];
-      var x = t ? t.clientX : lx;
-      var y = t ? t.clientY : ly;
-      var dx = x - sx;
-      var dy = y - sy;
-      if (window.__rssrLogSwipe) {
-        window.__rssrLogSwipe('swipe', Math.round(dx) + ',' + Math.round(dy) + ',moves=' + (window.__rssrMoves || 0));
+      if (t) {
+        var dx = t.clientX - sx;
+        var dy = t.clientY - sy;
+        if (Math.abs(dx) > Math.abs(maxDx)) maxDx = dx;
+        if (Math.abs(dy) > Math.abs(maxDy)) maxDy = dy;
       }
-      if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
-      if (dx > 0 && sx < 28) return; // borde izquierdo = "atrás" del sistema
+      if (window.__rssrLogSwipe) {
+        window.__rssrLogSwipe('swipe', Math.round(maxDx) + ',' + Math.round(maxDy));
+      }
+      if (Math.abs(maxDx) < 45) return;
+      if (Math.abs(maxDx) < Math.abs(maxDy) * 1.15) return;
+      if (maxDx > 0 && sx < 28) return;
       suppressClickUntil = Date.now() + 450;
 
       var drawer = window.__rssrDrawer;
       var open = document.body.classList.contains('drawer-open');
-      if (dx < 0) {
+      if (maxDx < 0) {
         if (open) { if (drawer) drawer.close(); } else if (drawer) { drawer.open(); }
         return;
       }
@@ -611,7 +619,7 @@
     }, true);
 
     document.addEventListener('touchstart', startSwipe, { passive: true });
-    document.addEventListener('touchmove', moveSwipe, { passive: true });
+    document.addEventListener('touchmove', track, { passive: true });
     document.addEventListener('touchend', finishSwipe, { passive: true });
     document.addEventListener('touchcancel', finishSwipe, { passive: true });
   });
