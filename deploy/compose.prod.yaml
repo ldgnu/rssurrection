@@ -9,7 +9,10 @@ services:
     container_name: rssurrection
     restart: unless-stopped
     env_file:
-      - ../.env
+      # format: raw evita que Compose interpole valores con '$' (la contraseña
+      # de API de FreshRSS puede contenerlos y se truncaba).
+      - path: ../app.env
+        format: raw
     read_only: true
     tmpfs:
       - /tmp
