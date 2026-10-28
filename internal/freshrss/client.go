@@ -51,7 +51,8 @@ type Client struct {
 	ua      string
 	now     func() time.Time
 
-	mu      sync.Mutex
+	authMu  sync.Mutex // protege auth/token; nunca se retiene durante I/O
+	loginMu sync.Mutex // serializa los logins
 	auth    string
 	authAt  time.Time
 	token   string
@@ -130,12 +131,14 @@ func (c *Client) CloseIdleConnections() {
 
 // Login forces a fresh authentication.
 func (c *Client) Login(ctx context.Context) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.loginMu.Lock()
+	defer c.loginMu.Unlock()
 	_, err := c.loginLocked(ctx)
 	return err
 }
 
+// loginLocked must be called with loginMu held. It never holds authMu while
+// doing network I/O, so error paths cannot deadlock.
 func (c *Client) loginLocked(ctx context.Context) (string, error) {
 	form := url.Values{}
 	form.Set("Email", c.user)
@@ -164,31 +167,44 @@ func (c *Client) loginLocked(ctx context.Context) (string, error) {
 	if sid == "" {
 		sid = auth
 	}
+	c.authMu.Lock()
 	c.auth = auth
 	c.authAt = c.now()
 	c.token = ""
 	c.tokenAt = time.Time{}
+	c.authMu.Unlock()
 	return auth, nil
 }
 
 func (c *Client) authToken(ctx context.Context) (string, error) {
-	c.mu.Lock()
+	c.authMu.Lock()
 	if c.auth != "" && c.now().Sub(c.authAt) < authTTL {
 		tok := c.auth
-		c.mu.Unlock()
+		c.authMu.Unlock()
 		return tok, nil
 	}
-	defer c.mu.Unlock()
+	c.authMu.Unlock()
+
+	c.loginMu.Lock()
+	defer c.loginMu.Unlock()
+	// Otro goroutine pudo haber renovado el token mientras esperábamos.
+	c.authMu.Lock()
+	if c.auth != "" && c.now().Sub(c.authAt) < authTTL {
+		tok := c.auth
+		c.authMu.Unlock()
+		return tok, nil
+	}
+	c.authMu.Unlock()
 	return c.loginLocked(ctx)
 }
 
 func (c *Client) invalidateAuth() {
-	c.mu.Lock()
+	c.authMu.Lock()
 	c.auth = ""
 	c.authAt = time.Time{}
 	c.token = ""
 	c.tokenAt = time.Time{}
-	c.mu.Unlock()
+	c.authMu.Unlock()
 }
 
 func (c *Client) writeToken(ctx context.Context) (string, error) {
@@ -196,13 +212,13 @@ func (c *Client) writeToken(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	c.mu.Lock()
+	c.authMu.Lock()
 	if c.token != "" && c.now().Sub(c.tokenAt) < tokenTTL {
 		tok := c.token
-		c.mu.Unlock()
+		c.authMu.Unlock()
 		return tok, nil
 	}
-	c.mu.Unlock()
+	c.authMu.Unlock()
 
 	body, err := c.do(ctx, "token", http.MethodGet, "/reader/api/0/token", nil, nil, auth)
 	if err != nil {
@@ -212,10 +228,10 @@ func (c *Client) writeToken(ctx context.Context) (string, error) {
 	if tok == "" {
 		return "", apiErr("token", 0, ErrInvalidResponse, "FreshRSS returned an empty write token")
 	}
-	c.mu.Lock()
+	c.authMu.Lock()
 	c.token = tok
 	c.tokenAt = c.now()
-	c.mu.Unlock()
+	c.authMu.Unlock()
 	return tok, nil
 }
 
@@ -313,9 +329,9 @@ func (c *Client) redact(s string) string {
 	if c.pass != "" {
 		s = strings.ReplaceAll(s, c.pass, "REDACTED")
 	}
-	c.mu.Lock()
+	c.authMu.Lock()
 	auth, token := c.auth, c.token
-	c.mu.Unlock()
+	c.authMu.Unlock()
 	if auth != "" {
 		s = strings.ReplaceAll(s, auth, "REDACTED")
 	}

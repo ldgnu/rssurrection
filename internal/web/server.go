@@ -222,6 +222,8 @@ type pageData struct {
 	Saved           bool
 	AIEnabled       bool
 	TranslateToggle bool
+	LoginError      string
+	LoginNext       string
 	AIModel         string
 	Regional        []string
 }

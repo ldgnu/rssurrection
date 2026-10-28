@@ -172,19 +172,23 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, loginPath, http.StatusSeeOther)
 }
 
-type loginData struct {
-	Error string
-	Next  string
-}
-
 func (s *Server) renderLogin(w http.ResponseWriter, r *http.Request, status int, msg string) {
 	t, ok := s.pages["login"]
 	if !ok {
 		http.Error(w, "login no disponible", http.StatusInternalServerError)
 		return
 	}
+	data := s.baseData("Entrar", "")
+	data.Bare = true
+	data.LoginError = msg
+	data.LoginNext = r.URL.Query().Get("next")
+	if data.LoginNext == "" {
+		data.LoginNext = r.PostFormValue("next")
+	}
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
-	_ = t.ExecuteTemplate(w, "layout", loginData{Error: msg, Next: r.URL.Query().Get("next")})
+	if err := t.ExecuteTemplate(w, "layout", data); err != nil {
+		s.log.Error("login render failed", "error", err)
+	}
 }
