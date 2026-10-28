@@ -10,7 +10,7 @@ import (
 )
 
 func TestSignRejectsTampering(t *testing.T) {
-	p := New()
+	p := New("test-secret")
 	u := "https://example.com/a.jpg"
 	sig := p.Sign(u)
 	if !p.valid(u, sig) {
@@ -96,7 +96,7 @@ func TestHandleImageServesCachedImage(t *testing.T) {
 	}))
 	defer upstream.Close()
 
-	p := New()
+	p := New("test-secret")
 	p.hc = upstream.Client() // bypass the public-IP dialer for this unit test
 
 	raw := upstream.URL + "/a.png"
@@ -119,7 +119,7 @@ func TestHandleImageRejectsHTML(t *testing.T) {
 	}))
 	defer upstream.Close()
 
-	p := New()
+	p := New("test-secret")
 	p.hc = upstream.Client()
 
 	req := httptest.NewRequest(http.MethodGet, p.ImageURL(upstream.URL+"/a"), nil)
@@ -131,7 +131,7 @@ func TestHandleImageRejectsHTML(t *testing.T) {
 }
 
 func TestHandleImageRejectsLoopbackInProduction(t *testing.T) {
-	p := New() // default client enforces the public-IP rule
+	p := New("test-secret") // default client enforces the public-IP rule
 	raw := "http://127.0.0.1:9/x.png"
 	req := httptest.NewRequest(http.MethodGet, p.ImageURL(raw), nil)
 	rec := httptest.NewRecorder()
@@ -142,7 +142,7 @@ func TestHandleImageRejectsLoopbackInProduction(t *testing.T) {
 }
 
 func TestHandleImageRejectsBadSignature(t *testing.T) {
-	p := New()
+	p := New("test-secret")
 	req := httptest.NewRequest(http.MethodGet, "/img?u=https%3A%2F%2Fexample.com%2Fa.png&k=nope", nil)
 	rec := httptest.NewRecorder()
 	p.HandleImage(rec, req)
