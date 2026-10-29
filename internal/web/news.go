@@ -249,9 +249,9 @@ func (s *Server) handleMenu(w http.ResponseWriter, r *http.Request) {
 	data := s.baseData("Opciones", "home")
 	data.Categories = s.categories(r.Context())
 	data.Mosaic = isMosaic(r)
-	data.ToggleHref = "/?v=mosaic"
+	data.ToggleHref = "/"
 	if data.Mosaic {
-		data.ToggleHref = "/"
+		data.ToggleHref = "/?v=full"
 	}
 	if c := r.URL.Query().Get("cat"); c != "" {
 		for _, cat := range data.Categories {
@@ -267,9 +267,9 @@ func (s *Server) handleMenu(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
 	data := s.baseData("Ajustes", "home")
 	data.Mosaic = isMosaic(r)
-	data.ToggleHref = "/?v=mosaic"
+	data.ToggleHref = "/"
 	if data.Mosaic {
-		data.ToggleHref = "/"
+		data.ToggleHref = "/?v=full"
 	}
 	data.AIEnabled = s.ai != nil
 	if s.ai != nil {
@@ -321,7 +321,8 @@ func (s *Server) handleCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func isMosaic(r *http.Request) bool {
-	return r.URL.Query().Get("v") == "mosaic"
+	// El mosaico es la vista principal; ?v=full vuelve a una por pantalla.
+	return r.URL.Query().Get("v") != "full"
 }
 
 func viewHref(label, slug string, mosaic bool) string {
@@ -330,9 +331,9 @@ func viewHref(label, slug string, mosaic bool) string {
 		base = "/c/" + slug
 	}
 	if mosaic {
-		return base + "?v=mosaic"
+		return base
 	}
-	return base
+	return base + "?v=full"
 }
 
 func (s *Server) renderFeed(w http.ResponseWriter, r *http.Request, stream freshrss.Stream, label string) {
@@ -398,18 +399,18 @@ func (s *Server) renderFeed(w http.ResponseWriter, r *http.Request, stream fresh
 	}
 	if data.Saved {
 		data.ToggleHref = "/guardados"
-		if data.Mosaic {
-			data.ToggleHref = "/guardados?v=mosaic"
+		if !data.Mosaic {
+			data.ToggleHref = "/guardados?v=full"
 		}
 	} else {
-		data.ToggleHref = viewHref(label, categorySlug(label), !data.Mosaic)
+		data.ToggleHref = viewHref(label, categorySlug(label), data.Mosaic)
 	}
 	s.render(w, r, http.StatusOK, "home", data)
 }
 
 // handleFeed returns the next batch of story cards as an HTML fragment.
 func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
-	mosaic := r.URL.Query().Get("v") == "mosaic"
+	mosaic := r.URL.Query().Get("v") != "full"
 	if !s.cfg.FreshRSS.Configured() {
 		http.Error(w, "freshrss not configured", http.StatusServiceUnavailable)
 		return
