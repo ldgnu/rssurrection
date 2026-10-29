@@ -21,7 +21,7 @@
 <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
 <script src="/static/app.js?v={{.AssetVer}}" defer></script>
 </head>
-<body class="{{if .Bare}}is-bare{{end}}{{if .Stream}} is-stream{{end}}">
+<body class="{{if .Bare}}is-bare{{end}}{{if .Stream}} is-stream{{end}}" data-font="{{if .FontSize}}{{.FontSize}}{{else}}1{{end}}">
 <a class="skip" href="#main">Saltar al contenido</a>
 {{if not .Bare}}<header class="chrome">
   <div class="chrome-row">

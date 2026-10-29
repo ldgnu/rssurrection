@@ -910,3 +910,14 @@ a.fab { text-decoration: none; }
 }
 .login-btn:active { transform: scale(.98); }
 .logout-form { margin: 1.6rem 0 .4rem; }
+
+.set-button {
+  width: 100%; background: transparent; border: 0; font: inherit; text-align: left;
+  cursor: pointer; padding: .5rem .2rem; color: var(--ink);
+}
+.set-list li form { margin: 0; }
+.sheet-url {
+  width: 100%; min-height: 46px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--bg-soft); color: var(--ink-soft); font: inherit; font-size: .82rem;
+  padding: .5rem .7rem;
+}

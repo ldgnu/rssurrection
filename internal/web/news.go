@@ -516,6 +516,19 @@ func (s *Server) handleArticle(w http.ResponseWriter, r *http.Request) {
 	data := s.baseData(a.Title, "home")
 	data.Bare = true
 	data.AIEnabled = s.ai != nil
+	data.FontSize = "1"
+	if c, err := r.Cookie("rssr_font"); err == nil && (c.Value == "1" || c.Value == "2" || c.Value == "3") {
+		data.FontSize = c.Value
+	}
+	switch r.URL.Query().Get("ok") {
+	case "star":
+		data.Notice = "Guardado en favoritos."
+	case "read":
+		data.Notice = "Estado de lectura actualizado."
+	}
+	if q := r.URL.Query().Get("error"); q != "" {
+		data.Notice = "FreshRSS rechazó el cambio. Probá de nuevo."
+	}
 	data.Article = &v
 	data.Content = template.HTML(htmlsafe.Fragment(a.ContentHTML))
 	if strings.TrimSpace(a.ContentHTML) == "" {

@@ -1,0 +1,53 @@
+{{define "content"}}
+<div class="cats-wrap">
+  <header class="feeds-head">
+    <h1>Opciones</h1>
+    <p class="feeds-count">{{.Article.Title}}</p>
+  </header>
+
+  {{if .Notice}}<section class="notice" role="status"><p>{{.Notice}}</p></section>{{end}}
+
+  <ul class="set-list">
+    <li>
+      <form method="post" action="/a/{{.Article.Key}}/star">
+        <input type="hidden" name="on" value="{{if .Article.Starred}}0{{else}}1{{end}}">
+        <button class="set-row set-button" type="submit">
+          <span class="set-icon">♥</span>
+          <span class="set-body"><span class="set-title">{{if .Article.Starred}}Quitar de guardados{{else}}Guardar{{end}}</span>
+          <span class="set-sub">Se sincroniza con FreshRSS</span></span>
+        </button>
+      </form>
+    </li>
+    <li>
+      <form method="post" action="/a/{{.Article.Key}}/read">
+        <input type="hidden" name="on" value="{{if .Article.Read}}0{{else}}1{{end}}">
+        <button class="set-row set-button" type="submit">
+          <span class="set-icon">◎</span>
+          <span class="set-body"><span class="set-title">{{if .Article.Read}}Marcar como no leído{{else}}Marcar como leído{{end}}</span>
+          <span class="set-sub">Estado actual: {{if .Article.Read}}leído{{else}}sin leer{{end}}</span></span>
+        </button>
+      </form>
+    </li>
+    {{if .Article.Link}}
+    <li>
+      <a class="set-row" href="{{.Article.Link}}" target="_blank" rel="noopener noreferrer">
+        <span class="set-icon">↗</span>
+        <span class="set-body"><span class="set-title">Abrir original</span><span class="set-sub">{{.Article.Domain}}</span></span>
+      </a>
+    </li>
+    {{end}}
+  </ul>
+
+  <h2 class="set-h2">Tamaño de letra</h2>
+  <div class="theme-picker">
+    <a class="theme-btn" href="/font?size=1&back=/a/{{.Article.Key}}" {{if eq .FontSize "1"}}aria-current="page"{{end}}>Normal</a>
+    <a class="theme-btn" href="/font?size=2&back=/a/{{.Article.Key}}" {{if eq .FontSize "2"}}aria-current="page"{{end}}>Grande</a>
+    <a class="theme-btn" href="/font?size=3&back=/a/{{.Article.Key}}" {{if eq .FontSize "3"}}aria-current="page"{{end}}>Más grande</a>
+  </div>
+
+  <h2 class="set-h2">Link</h2>
+  <input class="sheet-url" readonly value="{{.Article.Link}}">
+
+  <p class="cats-foot"><a href="/a/{{.Article.Key}}">Volver a la nota</a> · <a href="/">Portada</a></p>
+</div>
+{{end}}

@@ -103,7 +103,7 @@ func New(cfg config.Config, log *slog.Logger, src DataSource, mp *media.Proxy, a
 	s.limiter = &loginLimiter{fails: make(map[string][]time.Time)}
 	s.assetVer = s.assetVersion()
 	s.pages = make(map[string]*template.Template, 4)
-	for _, name := range []string{"home", "setup", "diag", "error", "article", "feeds", "categorias", "ajustes", "menu", "login"} {
+	for _, name := range []string{"home", "setup", "diag", "error", "article", "feeds", "categorias", "ajustes", "menu", "login", "acciones"} {
 		files := []string{"templates/layout.html", "templates/" + name + ".html"}
 		if name == "home" {
 			files = append(files, "templates/cards.html")
@@ -130,6 +130,10 @@ func New(cfg config.Config, log *slog.Logger, src DataSource, mp *media.Proxy, a
 	mux.HandleFunc("GET /regional", s.handleRegional)
 	mux.HandleFunc("GET /ajustes", s.handleSettings)
 	mux.HandleFunc("GET /menu", s.handleMenu)
+	mux.HandleFunc("GET /a/{key}/opciones", s.handleArticleActions)
+	mux.HandleFunc("POST /a/{key}/star", s.readerAction("star"))
+	mux.HandleFunc("POST /a/{key}/read", s.readerAction("read"))
+	mux.HandleFunc("GET /font", s.handleFont)
 	mux.HandleFunc("GET /login", s.handleLoginPage)
 	mux.HandleFunc("POST /login", s.handleLogin)
 	mux.HandleFunc("POST /logout", s.handleLogout)
@@ -224,6 +228,8 @@ type pageData struct {
 	TranslateToggle bool
 	LoginError      string
 	LoginNext       string
+	FontSize        string
+	Notice          string
 	AIModel         string
 	Regional        []string
 }
