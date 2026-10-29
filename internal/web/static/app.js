@@ -592,23 +592,19 @@
       if (window.__rssrLogSwipe) {
         window.__rssrLogSwipe('swipe', Math.round(maxDx) + ',' + Math.round(maxDy));
       }
-      if (Math.abs(maxDx) < 45) return;
+      if (Math.abs(maxDx) < 40) return;
       if (Math.abs(maxDx) < Math.abs(maxDy) * 1.15) return;
-      if (maxDx > 0 && sx < 28) return;
       suppressClickUntil = Date.now() + 450;
 
+      // Cualquier swipe horizontal abre o cierra el menú. Nunca navega:
+      // para abrir una nota está el toque (y el botón de opciones).
       var drawer = window.__rssrDrawer;
-      var open = document.body.classList.contains('drawer-open');
-      if (maxDx < 0) {
-        if (open) { if (drawer) drawer.close(); } else if (drawer) { drawer.open(); }
-        return;
+      if (!drawer) return;
+      if (document.body.classList.contains('drawer-open')) {
+        drawer.close();
+      } else {
+        drawer.open();
       }
-      if (open) { if (drawer) drawer.close(); return; }
-
-      var list = cards();
-      var card = list[Math.max(0, Math.min(list.length - 1, current()))];
-      var link = card && card.querySelector('.story-link');
-      if (link && link.getAttribute('href')) window.location.assign(link.getAttribute('href'));
     }
 
     document.addEventListener('click', function (e) {
