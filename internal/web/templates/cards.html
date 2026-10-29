@@ -18,4 +18,10 @@
 
 {{define "cards"}}{{range .Articles}}{{template "card" .}}{{end}}{{end}}
 
-{{define "fib"}}{{range .Pages}}<section class="fib-page">{{range .}}{{template "card" .}}{{end}}<div class="fib-grip" aria-hidden="true"><span></span></div></section>{{end}}{{end}}
+{{define "fib"}}{{range .Pages}}
+<section class="fib-page">
+  {{with index . 0}}{{if .ImageURL}}<img class="fib-bg" src="{{.ImageURL}}" alt="" fetchpriority="high" decoding="async">{{end}}{{end}}
+  <span class="fib-scrim"></span>
+  <div class="fib-cards">{{range .}}{{template "card" .}}{{end}}</div>
+  <div class="fib-grip" aria-hidden="true"><span></span></div>
+</section>{{end}}{{end}}
