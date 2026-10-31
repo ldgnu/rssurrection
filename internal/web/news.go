@@ -242,6 +242,7 @@ func (s *Server) handleRegional(w http.ResponseWriter, r *http.Request) {
 		s.log.Warn("regional page failed", "error", err)
 	}
 	data.Articles = s.buildRegionalCards(items)
+	data.Pages = fibChunk(data.Articles)
 	s.render(w, r, http.StatusOK, "home", data)
 }
 
